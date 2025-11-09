@@ -39,7 +39,6 @@ public:
 
     // Create initial publish rate
     double rate = this->get_parameter("publish_rate").as_double();
-    RCLCPP_INFO(this->get_logger(), "Starting with rate: %.2f Hz", rate);
 
     // Generate timer with initial rate
     timer_ = this->create_wall_timer(
@@ -51,6 +50,12 @@ public:
       "modify_message",
       std::bind(&Talker::handle_modify_message, this,
                 std::placeholders::_1, std::placeholders::_2));
+
+    // Dynamically update rate when parameter changes
+    param_callback_handle_ = this->add_on_set_parameters_callback(
+      std::bind(&Talker::on_parameter_change, this, std::placeholders::_1));
+
+    RCLCPP_INFO(this->get_logger(), "Starting with rate: %.2f Hz", rate);
 
   }
 
@@ -73,14 +78,35 @@ private:
                   base_message_.c_str());
     }
 
+  rcl_interfaces::msg::SetParametersResult on_parameter_change(
+    const std::vector<rclcpp::Parameter> &params)
+  {
+    rcl_interfaces::msg::SetParametersResult result;
+    result.successful = true;
 
+    for (const auto &param : params) {
+      if (param.get_name() == "publish_rate") {
+        double new_rate = param.as_double();
+        RCLCPP_INFO(this->get_logger(), "Updating publish rate to %.2f Hz", new_rate);
 
-  std::string base_message_;
+        // Recreate the timer with the new rate
+        timer_->cancel();
+        timer_ = this->create_wall_timer(
+          std::chrono::duration<double>(1.0 / new_rate),
+          std::bind(&Talker::timer_callback, this)  // use correct method
+        );
+      }
+    }
+    return result;
+  }
+
   size_t count_;
+  std::string base_message_;
+
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
   rclcpp::Service<beginner_tutorials::srv::ModifyMessage>::SharedPtr service_;
-  OnSetParametersCallbackHandle::SharedPtr param_callback_handle_;
+  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_handle_;
   
 };
 
