@@ -19,6 +19,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
+#include "beginner_tutorials/srv/modify_message.hpp"
 
 using namespace std::chrono_literals;
 
@@ -29,24 +30,48 @@ class MinimalPublisher : public rclcpp::Node
 {
 public:
   MinimalPublisher()
-  : Node("minimal_publisher"), count_(0)
+  : Node("minimal_publisher"), count_(0), base_message_("This is the base message")
   {
     publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
     timer_ = this->create_wall_timer(
       500ms, std::bind(&MinimalPublisher::timer_callback, this));
+
+    service_ = this->create_service<beginner_tutorials::srv::ModifyMessage>(
+      "modify_message",
+      std::bind(&MinimalPublisher::handle_modify_message, this,
+                std::placeholders::_1, std::placeholders::_2));
+
+    RCLCPP_INFO(this->get_logger(), "Publisher node started with message: '%s'",
+          base_message_.c_str());
   }
 
 private:
   void timer_callback()
   {
     auto message = std_msgs::msg::String();
-    message.data = "This is a modified message! " + std::to_string(count_++);
+    message.data = base_message_ + std::to_string(count_++);
     RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
     publisher_->publish(message);
   }
+
+  void handle_modify_message(
+    const std::shared_ptr<beginner_tutorials::srv::ModifyMessage::Request> request,
+    std::shared_ptr<beginner_tutorials::srv::ModifyMessage::Response> response)
+    {
+      base_message_ = request->modified_message;
+      response->success = true;
+      RCLCPP_INFO(this->get_logger(), "Modified base message to: '%s'",
+                  base_message_.c_str());
+    }
+
+
+
+  std::string base_message_;
+  size_t count_;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
-  size_t count_;
+  rclcpp::Service<beginner_tutorials::srv::ModifyMessage>::SharedPtr service_;
+  
 };
 
 int main(int argc, char * argv[])
