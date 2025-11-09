@@ -20,14 +20,14 @@
 
 using std::placeholders::_1;
 
-class MinimalSubscriber : public rclcpp::Node
+class Listener : public rclcpp::Node
 {
 public:
-  MinimalSubscriber()
+  Listener()
   : Node("minimal_subscriber")
   {
     subscription_ = this->create_subscription<std_msgs::msg::String>(
-      "topic", 10, std::bind(&MinimalSubscriber::topic_callback, this, _1));
+      "topic", 10, std::bind(&Listener::topic_callback, this, _1));
   }
 
 private:
@@ -41,7 +41,7 @@ private:
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<MinimalSubscriber>());
+  rclcpp::spin(std::make_shared<Listener>());
   rclcpp::shutdown();
   return 0;
 }

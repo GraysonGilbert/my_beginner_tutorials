@@ -23,26 +23,35 @@
 
 using namespace std::chrono_literals;
 
-/* This example creates a subclass of Node and uses std::bind() to register a
- * member function as a callback from the timer. */
 
-class MinimalPublisher : public rclcpp::Node
+class Talker : public rclcpp::Node
 {
 public:
-  MinimalPublisher()
+  Talker()
   : Node("minimal_publisher"), count_(0), base_message_("This is the base message")
   {
-    publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
-    timer_ = this->create_wall_timer(
-      500ms, std::bind(&MinimalPublisher::timer_callback, this));
 
+    // Define publish rate parameter (in Hz)
+    this->declare_parameter("publish_rate", 1.0);
+
+    // Create publisher
+    publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
+
+    // Create initial publish rate
+    double rate = this->get_parameter("publish_rate").as_double();
+    RCLCPP_INFO(this->get_logger(), "Starting with rate: %.2f Hz", rate);
+
+    // Generate timer with initial rate
+    timer_ = this->create_wall_timer(
+      std::chrono::duration<double>(1.0 / rate),
+      std::bind(&Talker::timer_callback, this));
+
+    // Create service to change published message
     service_ = this->create_service<beginner_tutorials::srv::ModifyMessage>(
       "modify_message",
-      std::bind(&MinimalPublisher::handle_modify_message, this,
+      std::bind(&Talker::handle_modify_message, this,
                 std::placeholders::_1, std::placeholders::_2));
 
-    RCLCPP_INFO(this->get_logger(), "Publisher node started with message: '%s'",
-          base_message_.c_str());
   }
 
 private:
@@ -71,13 +80,14 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
   rclcpp::Service<beginner_tutorials::srv::ModifyMessage>::SharedPtr service_;
+  OnSetParametersCallbackHandle::SharedPtr param_callback_handle_;
   
 };
 
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<MinimalPublisher>());
+  rclcpp::spin(std::make_shared<Talker>());
   rclcpp::shutdown();
   return 0;
 }

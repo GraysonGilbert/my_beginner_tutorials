@@ -7,7 +7,8 @@ def generate_launch_description():
             package='beginner_tutorials',
             executable='talker',
             name='talker',
-            output='screen'
+            output='screen',
+            parameters=[{'publish_rate': 1.0}]
         ),
         Node(
             package='beginner_tutorials',
