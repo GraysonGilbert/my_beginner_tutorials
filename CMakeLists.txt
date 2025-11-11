@@ -20,10 +20,10 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ModifyMessage.srv"
 )
 
-add_executable(talker src/publisher_member_function.cpp)
+add_executable(talker src/talker.cpp)
 ament_target_dependencies(talker rclcpp std_msgs)
 
-add_executable(listener src/subscriber_member_function.cpp)
+add_executable(listener src/listener.cpp)
 ament_target_dependencies(listener rclcpp std_msgs)
 
 install(TARGETS

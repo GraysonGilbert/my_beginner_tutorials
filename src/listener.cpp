@@ -1,3 +1,10 @@
+/**
+ * @file listener.cpp
+ * @author Grayson Gilbert (ggilbert@umd.edu)
+ * @brief Extension of the ros beginner tutorial listener node
+ *
+ */
+
 // Copyright 2016 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,21 +30,44 @@ using std::placeholders::_1;
 class Listener : public rclcpp::Node
 {
 public:
+
+  /**
+   * @brief Construct a new Listener object that subscribes to the /chatter topic
+   * 
+   */
   Listener()
-  : Node("minimal_subscriber")
+  : Node("listener")
   {
+    // Create subscription to listen to chatter topic
     subscription_ = this->create_subscription<std_msgs::msg::String>(
-      "topic", 10, std::bind(&Listener::topic_callback, this, _1));
+      "chatter", 10, std::bind(&Listener::topic_callback, this, _1));
+
+    // Log node initialization
+    RCLCPP_INFO_STREAM(this->get_logger(), "Listener node initialized and subscribing to 'chatter'");
   }
 
 private:
   void topic_callback(const std_msgs::msg::String & msg) const
   {
-    RCLCPP_INFO(this->get_logger(), "I heard: '%s'", msg.data.c_str());
+    // Log message recieved
+    RCLCPP_INFO_STREAM(this->get_logger(), "I heard: " << msg.data);
+
+    // If message data is mempty log as an error
+    if (msg.data.empty()) {
+      RCLCPP_ERROR_STREAM(this->get_logger(), "ERROR: Received empty message!");
+    }
+
+    // Log "shutdown" messages as fatal
+    if (msg.data.rfind("shutdown",0) == 0) {
+      RCLCPP_FATAL_STREAM(this->get_logger(), "FATAL: Received shutdown message, shutting down!");
+    }
+
   }
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subscription_;
 };
 
+
+// Main function to spin node
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
