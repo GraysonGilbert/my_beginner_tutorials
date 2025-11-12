@@ -30,7 +30,7 @@ colcon build --packages-select beginner_tutorials
 
 ### Run Listener Executable
 ```bash
-# From the same temrinal that you just built the package in run the following:
+# From the same terminal that you just built the package in run the following:
 . install/setup.bash
 ros2 run  beginner_tutorials listener
 ```
@@ -46,6 +46,21 @@ source /opt/ros/humble/setup.bash
 . install/setup.bash
 
 ros2 run  beginner_tutorials talker
+```
+
+### Launch both nodes at the same time with launch file
+```bash
+# Source ROS2 underlay
+source /opt/ros/humble/setup.bash
+# Source overlay
+. install/setup.bash
+
+ros2 launch beginner_tutorials launch_nodes.py publish_rate:=1.0
+```
+
+### How to call service
+```bash
+ros2 service call /modify_message beginner_tutorials/srv/ModifyMessage "{modified_message: '<write message here>'}"
 ```
 
 Now you should see a message being published to the terminal from the Talker node, and the Listener node recieving and publishing the same message in the other terminal.
