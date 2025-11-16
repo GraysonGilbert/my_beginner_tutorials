@@ -37,7 +37,6 @@ using std::placeholders::_1;
 class Listener : public rclcpp::Node
 {
 public:
-
     /**
      * @brief Construct a new Listener object
      * 

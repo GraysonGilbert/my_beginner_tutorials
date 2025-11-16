@@ -34,7 +34,6 @@
     RCLCPP_INFO_STREAM(this->get_logger(), "Listener node initialized and subscribing to 'chatter'");
   }
 
-
   void Listener::topic_callback(const std_msgs::msg::String & msg) const
   {
     // Log message recieved
@@ -50,7 +49,6 @@
       RCLCPP_FATAL_STREAM(this->get_logger(), "FATAL: Received shutdown message, shutting down!");
     }
   }
-
 
 // Main function to spin node
 int main(int argc, char * argv[])

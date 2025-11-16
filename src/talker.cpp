@@ -23,13 +23,6 @@
 #include "beginner_tutorials/talker.hpp"
 
 
-
-/**
- * @brief Construct a new Talker object that publishes messages to the /chatter topic
- * 
- */
-
-
   Talker::Talker()
   : Node("talker"), count_(0), base_message_("This is the base message")
   {
@@ -58,10 +51,13 @@
     param_callback_handle_ = this->add_on_set_parameters_callback(
       std::bind(&Talker::on_parameter_change, this, std::placeholders::_1));
 
+    // Publish static transform
+    static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
+    publish_static_transform();
+
     RCLCPP_INFO_STREAM(this->get_logger(), "Starting publisher with rate: " << rate << " Hz");
 
   }
-
 
   void Talker::timer_callback()
   {
@@ -90,7 +86,6 @@
       RCLCPP_DEBUG_STREAM(this->get_logger(), "DEBUG: Service modify_message called successfully");
     }
 
-
   // Updates the message publish rate dynamically
   rcl_interfaces::msg::SetParametersResult Talker::on_parameter_change(
     const std::vector<rclcpp::Parameter> &params)
@@ -113,6 +108,28 @@
     }
     return result;
   } 
+
+  void Talker::publish_static_transform(){
+    geometry_msgs::msg::TransformStamped transform;
+
+    transform.header.stamp = this->now();
+    transform.header.frame_id = "world";
+    transform.child_frame_id = "talk";
+
+    transform.transform.translation.x = 1.0;
+    transform.transform.translation.y = 5.0;
+    transform.transform.translation.z = 0.5;
+
+    transform.transform.rotation.x = 1.0;
+    transform.transform.rotation.y = 2.0;
+    transform.transform.rotation.z = 3.0;
+    transform.transform.rotation.w = 1.0;
+
+    static_broadcaster_->sendTransform(transform);
+
+    RCLCPP_INFO(this->get_logger(),
+                "Static transform published: world -> talk");
+  }
 
 // Main function to spin node
 int main(int argc, char * argv[])

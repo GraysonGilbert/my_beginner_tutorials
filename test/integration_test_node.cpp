@@ -20,6 +20,9 @@
 //     - Rewrite the first test case to use wait_for_service().
 //     - Use modern ROS2 syntax
 //     - Use Catch2 Fixture
+//
+// 2025-11-16, Grayson Gilbert
+//     - Added second test for checking static transform publishing
 
 #include <catch_ros2/catch_ros2.hpp>
 #include <chrono>
@@ -46,20 +49,17 @@ class MyTestsFixture {
 public:
   MyTestsFixture () 
   {
-    /**
-     * 1.) Create the node that performs the test. (aka Integration test node):
-     */
+    
+    // Create the node that performs the test. (aka Integration test node):
     testerNode = rclcpp::Node::make_shared ("IntegrationTestNode1");
     Logger = testerNode->get_logger(); // make sure message will appear in rqt_console
 
-    /**
-     * 2.) Declare a parameter for the duration of the test:
-     */
+    // Declare a parameter for the duration of the test:
+     
     testerNode->declare_parameter<double> ("test_duration");
 
-    /**
-     * 3.) Get the test duration value:
-     */
+     // Get the test duration value:
+     
     TEST_DURATION = testerNode->get_parameter("test_duration").get_parameter_value().get<double>();
     RCLCPP_INFO_STREAM (Logger, "Got test_duration =" << TEST_DURATION);
   }
@@ -82,9 +82,8 @@ protected:
 
 TEST_CASE_METHOD (MyTestsFixture, "test topic talker", "[topic]") {
 
-  /**
-   * 4.) Now, subscribe to a specific topic we're looking for:
-   */
+   // Now, subscribe to a specific topic we're looking for:
+
   bool got_topic = false;
 
   // Define a callback that captures the additional parameter
@@ -100,9 +99,6 @@ TEST_CASE_METHOD (MyTestsFixture, "test topic talker", "[topic]") {
 
   auto subscriber = testerNode->create_subscription<String> ("chatter", 10, ListenerCallback (got_topic));
 
-  /**
-   * 5.) Finally do the actual test:
-   */
   rclcpp::Rate rate(10.0);       // 10hz checks
   auto start_time = rclcpp::Clock().now();
   auto duration   = rclcpp::Clock().now() - start_time;
