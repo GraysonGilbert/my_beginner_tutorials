@@ -20,27 +20,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <chrono>
-#include <functional>
-#include <memory>
-#include <string>
-
-#include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
-#include "beginner_tutorials/srv/modify_message.hpp"
-
-using namespace std::chrono_literals;
+#include "beginner_tutorials/talker.hpp"
 
 
-class Talker : public rclcpp::Node
-{
-public:
-
-/**
- * @brief Construct a new Talker object that publishes messages to the /chatter topic
- * 
- */
-  Talker()
+  Talker::Talker()
   : Node("talker"), count_(0), base_message_("This is the base message")
   {
 
@@ -68,12 +51,15 @@ public:
     param_callback_handle_ = this->add_on_set_parameters_callback(
       std::bind(&Talker::on_parameter_change, this, std::placeholders::_1));
 
+    // Publish static transform
+    static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
+    publish_static_transform();
+
     RCLCPP_INFO_STREAM(this->get_logger(), "Starting publisher with rate: " << rate << " Hz");
 
   }
 
-private:
-  void timer_callback()
+  void Talker::timer_callback()
   {
     auto message = std_msgs::msg::String();
     message.data = base_message_;
@@ -89,7 +75,7 @@ private:
   }
 
   // Modifies the service request by updating the published message
-  void handle_modify_message(
+  void Talker::handle_modify_message(
     const std::shared_ptr<beginner_tutorials::srv::ModifyMessage::Request> request,
     std::shared_ptr<beginner_tutorials::srv::ModifyMessage::Response> response)
     {
@@ -100,9 +86,8 @@ private:
       RCLCPP_DEBUG_STREAM(this->get_logger(), "DEBUG: Service modify_message called successfully");
     }
 
-
   // Updates the message publish rate dynamically
-  rcl_interfaces::msg::SetParametersResult on_parameter_change(
+  rcl_interfaces::msg::SetParametersResult Talker::on_parameter_change(
     const std::vector<rclcpp::Parameter> &params)
   {
     rcl_interfaces::msg::SetParametersResult result;
@@ -122,17 +107,29 @@ private:
       }
     }
     return result;
+  } 
+
+  void Talker::publish_static_transform(){
+    geometry_msgs::msg::TransformStamped transform;
+
+    transform.header.stamp = this->now();
+    transform.header.frame_id = "world";
+    transform.child_frame_id = "talk";
+
+    transform.transform.translation.x = 1.0;
+    transform.transform.translation.y = 5.0;
+    transform.transform.translation.z = 0.5;
+
+    transform.transform.rotation.x = 1.0;
+    transform.transform.rotation.y = 2.0;
+    transform.transform.rotation.z = 3.0;
+    transform.transform.rotation.w = 1.0;
+
+    static_broadcaster_->sendTransform(transform);
+
+    RCLCPP_INFO(this->get_logger(),
+                "Static transform published: world -> talk");
   }
-
-  size_t count_;
-  std::string base_message_;
-
-  rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
-  rclcpp::Service<beginner_tutorials::srv::ModifyMessage>::SharedPtr service_;
-  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_handle_;
-  
-};
 
 // Main function to spin node
 int main(int argc, char * argv[])
