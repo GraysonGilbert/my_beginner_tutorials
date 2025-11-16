@@ -22,7 +22,7 @@ def generate_launch_description():
         name='talker',
         output='screen',
         parameters=[{'publish_rate': publish_rate}],
-        arguments=['--ros-args', '--log-level', 'debug']
+        arguments=['--ros-args', '--log-level', 'info']
     )
 
     listener_node = Node(
@@ -30,7 +30,7 @@ def generate_launch_description():
         executable='listener',
         name='listener',
         output='screen',
-        arguments=['--ros-args', '--log-level', 'debug']
+        arguments=['--ros-args', '--log-level', 'info']
     )
 
     # Return LaunchDescription
