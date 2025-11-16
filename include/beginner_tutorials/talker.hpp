@@ -36,6 +36,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "beginner_tutorials/srv/modify_message.hpp"
+#include "tf2_ros/static_transform_broadcaster.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 
 
 using namespace std::chrono_literals;
@@ -44,9 +46,8 @@ using namespace std::chrono_literals;
 class Talker : public rclcpp::Node
 {
 public:
-
     /**
-     * @brief Construct a new Talker object that publishes messages to the /chatter topic
+     * @brief Construct a new Talker object
      * 
      */
     Talker();
@@ -63,6 +64,9 @@ private:
     // Parameter change callback
     rcl_interfaces::msg::SetParametersResult on_parameter_change(const std::vector<rclcpp::Parameter> &params);
 
+    // Publish static transform
+    void publish_static_transform();
+
 
     size_t count_;
     std::string base_message_;
@@ -71,6 +75,7 @@ private:
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
     rclcpp::Service<beginner_tutorials::srv::ModifyMessage>::SharedPtr service_;
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_handle_;
+    std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
 
 };
 
