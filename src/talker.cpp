@@ -20,27 +20,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <chrono>
-#include <functional>
-#include <memory>
-#include <string>
-
-#include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
-#include "beginner_tutorials/srv/modify_message.hpp"
-
-using namespace std::chrono_literals;
+#include "beginner_tutorials/talker.hpp"
 
 
-class Talker : public rclcpp::Node
-{
-public:
 
 /**
  * @brief Construct a new Talker object that publishes messages to the /chatter topic
  * 
  */
-  Talker()
+
+
+  Talker::Talker()
   : Node("talker"), count_(0), base_message_("This is the base message")
   {
 
@@ -72,8 +62,8 @@ public:
 
   }
 
-private:
-  void timer_callback()
+
+  void Talker::timer_callback()
   {
     auto message = std_msgs::msg::String();
     message.data = base_message_;
@@ -89,7 +79,7 @@ private:
   }
 
   // Modifies the service request by updating the published message
-  void handle_modify_message(
+  void Talker::handle_modify_message(
     const std::shared_ptr<beginner_tutorials::srv::ModifyMessage::Request> request,
     std::shared_ptr<beginner_tutorials::srv::ModifyMessage::Response> response)
     {
@@ -102,7 +92,7 @@ private:
 
 
   // Updates the message publish rate dynamically
-  rcl_interfaces::msg::SetParametersResult on_parameter_change(
+  rcl_interfaces::msg::SetParametersResult Talker::on_parameter_change(
     const std::vector<rclcpp::Parameter> &params)
   {
     rcl_interfaces::msg::SetParametersResult result;
@@ -122,17 +112,7 @@ private:
       }
     }
     return result;
-  }
-
-  size_t count_;
-  std::string base_message_;
-
-  rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
-  rclcpp::Service<beginner_tutorials::srv::ModifyMessage>::SharedPtr service_;
-  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_handle_;
-  
-};
+  } 
 
 // Main function to spin node
 int main(int argc, char * argv[])

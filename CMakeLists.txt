@@ -10,6 +10,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+include_directories(
+  include
+)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -30,6 +33,9 @@ install(TARGETS
   talker
   listener
   DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY include/
+  DESTINATION include)
 
 install(DIRECTORY
   launch

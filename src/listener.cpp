@@ -5,7 +5,7 @@
  *
  */
 
-// Copyright 2016 Open Source Robotics Foundation, Inc.
+// Copyright 2025 Grayson Gilbert
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,23 +19,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <functional>
-#include <memory>
 
-#include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
+#include "beginner_tutorials/listener.hpp"
 
-using std::placeholders::_1;
 
-class Listener : public rclcpp::Node
-{
-public:
-
-  /**
-   * @brief Construct a new Listener object that subscribes to the /chatter topic
-   * 
-   */
-  Listener()
+  Listener::Listener()
   : Node("listener")
   {
     // Create subscription to listen to chatter topic
@@ -46,8 +34,8 @@ public:
     RCLCPP_INFO_STREAM(this->get_logger(), "Listener node initialized and subscribing to 'chatter'");
   }
 
-private:
-  void topic_callback(const std_msgs::msg::String & msg) const
+
+  void Listener::topic_callback(const std_msgs::msg::String & msg) const
   {
     // Log message recieved
     RCLCPP_INFO_STREAM(this->get_logger(), "I heard: " << msg.data);
@@ -61,10 +49,7 @@ private:
     if (msg.data.rfind("shutdown",0) == 0) {
       RCLCPP_FATAL_STREAM(this->get_logger(), "FATAL: Received shutdown message, shutting down!");
     }
-
   }
-  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subscription_;
-};
 
 
 // Main function to spin node
